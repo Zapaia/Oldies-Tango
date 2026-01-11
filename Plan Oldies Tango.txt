@@ -9,6 +9,46 @@ Abajo tenés:
 
 ---
 
+## Estado actual (2026-01-08)
+
+- Contexto del proyecto definido (visión, restricciones de costos y enfoque en agentes de IA).
+- Plan base y estructura del repo propuestos.
+- Pendiente: implementar estructura real del repo + pipeline dummy + docs mínimas en Git.
+
+---
+
+## Próximas 3 semanas (enfoque operativo)
+
+> Objetivo: salir de “plan” a “sistema mínimo que corre” con artifacts auditables.
+
+### Semana 1 — Repo mínimo + pipeline dummy
+**Hecho cuando:**
+- Estructura inicial creada (carpetas base + README + .env.example).
+- `run_daily.py` crea un run con `data/runs/<run_id>/` y artifacts vacíos.
+- Logs estructurados por etapa (aunque sean placeholders).
+
+**Día 1 (arranque):**
+- Definir el **MVP exacto** (duración objetivo, formato de video, estilo visual).
+- Crear estructura mínima del repo (carpetas base + README inicial).
+- Esqueleto de `configs/` y `.env.example` con placeholders.
+
+### Semana 2 — Render mínimo end-to-end (sin IA)
+**Hecho cuando:**
+- Video.mp4 generado desde imagen fija + audio placeholder.
+- Validadores básicos (duración, resolución, peso).
+
+### Semana 3 — Visual Agent v1
+**Hecho cuando:**
+- Imagen base generada + loop suave (pan/zoom).
+- Thumbnail consistente con branding.
+
+---
+
+## Ritual de actualización del plan
+
+- **Semanal (15 min):** marcar entregables completados y ajustar la siguiente semana.
+- **Diario (5 min):** anotar 1 bloqueo y 1 decisión técnica (para el futuro `decisions.md`).
+
 ## 1) Arquitectura del repo (lista para GitHub)
 
 La idea es que tu proyecto sea vendible como “producto”: reproducible, medible, con control de costos y calidad.
