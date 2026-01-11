@@ -1,0 +1,313 @@
+Perfecto. Voy a actuar como tutor/PM técnico: vos decidís el rumbo, yo te doy el camino, explicaciones y checkpoints para que lo puedas guiar, supervisar y entender mientras lo construís.
+
+Abajo tenés:
+
+1. **Arquitectura concreta del repo (carpetas + responsabilidades)**
+2. **Cómo fluye el sistema (inputs/outputs + logs)**
+3. **Plan de 3 meses (1h/día promedio), con entregables semanales**
+4. **Rutina diaria sugerida (para que avance aunque sea 1h)**
+
+---
+
+## 1) Arquitectura del repo (lista para GitHub)
+
+La idea es que tu proyecto sea vendible como “producto”: reproducible, medible, con control de costos y calidad.
+
+### Estructura propuesta
+
+```
+video-factory/
+  README.md
+  pyproject.toml / requirements.txt
+  .env.example
+  configs/
+    pipeline.yaml
+    channels.yaml
+    prompts/
+      creative_director.md
+      visual.md
+      music.md
+      metadata.md
+
+  src/
+    core/
+      settings.py           # carga config + env
+      logger.py             # logs estructurados (json)
+      ids.py                # video_id, run_id
+      storage.py            # paths + “artifacts registry”
+      validators.py         # reglas: duración, tamaño, audio peak, etc.
+
+    agents/
+      creative_director.py  # idea del día + guión/brief
+      music_agent.py        # genera/mezcla audio
+      visual_agent.py       # genera imagen + loop
+      editor_agent.py       # arma video final
+      publisher_agent.py    # metadata + upload
+      analyst_agent.py      # baja métricas + recomendaciones
+
+    media/
+      audio/
+        generate.py         # MusicGen / fuentes seguras
+        mix.py              # mezcla (ambiente + música)
+        normalize.py        # loudness, peaks
+      image/
+        generate.py         # imagen base
+        animate.py          # loop (pan/zoom + grain opcional)
+      video/
+        render.py           # moviepy/ffmpeg wrapper
+        thumbnail.py        # export thumb
+
+    pipelines/
+      run_daily.py          # orquesta todo (1 comando)
+      run_local.py          # modo dev (rápido)
+      backfill.py           # re-render / re-subir si hace falta
+
+    youtube/
+      upload.py             # YouTube Data API
+      analytics.py          # YouTube Analytics API
+      metadata.py           # título/desc/tags
+
+    analytics/
+      schemas.py            # definición de métricas
+      dashboard_export.py   # export csv/parquet
+      ab_testing.py         # variantes título/thumb
+
+  data/
+    raw/                    # insumos (opcionales)
+    runs/
+      2026-01-10_run-001/
+        brief.json
+        prompt_bundle.json
+        audio.wav
+        image.png
+        thumbnail.png
+        video.mp4
+        upload_response.json
+        metrics_day1.json
+        metrics_day7.json
+    catalog.csv             # índice de runs + status
+
+  docs/
+    architecture.md
+    decisions.md            # ADRs: decisiones técnicas y por qué
+    safety_copyright.md
+    cost_model.md
+
+  tests/
+    test_validators.py
+    test_render.py
+
+  scripts/
+    setup_local.sh
+    lint.sh
+```
+
+### Por qué esta estructura “vende”
+
+* **Separás agentes (lógica) de media (producción)** → fácil de entender.
+* **Cada run deja “artifacts” guardados** (brief, prompts, outputs, métricas) → replicable y auditable.
+* **Hay docs de decisiones** → demuestra pensamiento de ingeniería.
+* **Hay validadores** → calidad y compliance.
+
+---
+
+## 2) Flujo del sistema (lo que entra, lo que sale)
+
+Pensalo como una fábrica con etapas. Cada etapa produce un archivo y un log.
+
+### Inputs mínimos
+
+* Config del canal (tema, idioma, estilo, duración objetivo)
+* “Plantilla” de branding (fuente/colores/estética)
+* Prompts base (director creativo, música, visual, metadata)
+
+### Outputs por run (lo mínimo)
+
+* `brief.json`: concepto del video (“Radio porteña 1947, lluvia, madrugada”)
+* `prompt_bundle.json`: prompts exactos usados (clave para iterar)
+* `audio.wav`: audio final normalizado
+* `image.png`: imagen base
+* `thumbnail.png`: miniatura final
+* `video.mp4`: render final
+* `upload_response.json`: id del video + status
+* `metrics_day1.json`, `metrics_day7.json`: CTR, retención, watch time, etc.
+
+### Logs (importantísimo)
+
+Log estructurado por paso:
+
+* `run_id`, `stage`, `status`, `duration_sec`, `cost_estimate`, `output_path`
+  Así, cuando algo falla, sabés dónde y cuánto costó.
+
+---
+
+## 3) Plan de 3 meses (1 hora por día promedio)
+
+Objetivo de 12 semanas: **MVP funcionando end-to-end**, con publicación y dashboard básico.
+
+> Regla de oro: cada semana debe terminar con **algo que “corre”** (aunque feo), no solo lectura.
+
+### Semana 1 — Setup + visión + constraints
+
+**Deliverable:** repo creado + pipeline “dummy” que genera estructura de run.
+
+* Día 1: crear repo + estructura base + README inicial (qué es y qué no es).
+* Día 2: config en `configs/` + loader `.env`.
+* Día 3: logger json + run_id/artifacts.
+* Día 4: pipeline vacío que crea carpeta en `data/runs/...`
+* Día 5-6: docs: `architecture.md` + `cost_model.md` (muy simple).
+* Día 7: revisión y limpieza.
+
+**Aprendés:** reproducibilidad, separación de responsabilidades, por qué guardar artifacts.
+
+---
+
+### Semana 2 — Render mínimo (sin IA todavía)
+
+**Deliverable:** video.mp4 generado desde imagen + audio “placeholder”.
+
+* Generar una imagen fija (aunque sea stock local) + un audio de prueba.
+* Render con moviepy/ffmpeg wrapper.
+* Validadores: duración final, peso, resolución.
+
+**Aprendés:** la “línea de ensamblaje” (sin esto, el resto es humo).
+
+---
+
+### Semana 3 — Visual Agent v1 (loop + thumbnail)
+
+**Deliverable:** imagen generada + loop suave + thumbnail.
+
+* Imagen: (al principio puede ser plantilla o generador simple).
+* Loop: pan/zoom + ruido/grain suave (opcional).
+* Thumbnail: composición con texto + estilo consistente.
+
+**Aprendés:** packaging, consistencia visual, assets reutilizables.
+
+---
+
+### Semana 4 — Music Agent v1 (audio seguro)
+
+**Deliverable:** audio original (generado) + normalización.
+
+* Generar música con modelo/herramienta elegida.
+* Mezcla: música + ambiente leve (lluvia, vinilo).
+* Normalizar loudness / peaks.
+
+**Aprendés:** por qué audio define retención, y cómo evitar problemas de derechos.
+
+---
+
+### Semana 5 — Creative Director Agent (idea diaria)
+
+**Deliverable:** `brief.json` automático + prompts versionados.
+
+* El agente propone: escena, mood, keywords, duración, variantes.
+* Guardar prompt_bundle.
+
+**Aprendés:** control de prompts, versionado y experimentación.
+
+---
+
+### Semana 6 — Editor Agent “end-to-end local”
+
+**Deliverable:** `run_daily.py` produce video final con assets reales.
+
+* Orquesta: director → visual → music → editor.
+* Todo guardado en `data/runs/...`.
+
+**Aprendés:** orquestación, contratos entre módulos, debugging real.
+
+---
+
+### Semana 7 — Publisher Agent (subida a YouTube)
+
+**Deliverable:** video subido automáticamente (privado/no listado).
+
+* Setup API, OAuth, `upload.py`.
+* Metadata: título/desc/tags desde agente.
+* Guardar `upload_response.json`.
+
+**Aprendés:** integración real con producto externo + trazabilidad.
+
+---
+
+### Semana 8 — Analytics Agent (métricas)
+
+**Deliverable:** bajar métricas básicas y guardarlas por run.
+
+* CTR, views, watch time, avg view duration.
+* `dashboard_export.py` saca CSV.
+
+**Aprendés:** feedback loop (tu diferencial como data).
+
+---
+
+### Semana 9 — Dashboard (Power BI o simple notebook)
+
+**Deliverable:** dashboard mínimo (por video y por experimento).
+
+* Tabla de runs + métricas Day1/Day7.
+* Visual: CTR vs retención, ranking de prompts.
+
+**Aprendés:** decisión basada en data (no opinión).
+
+---
+
+### Semana 10 — A/B testing (títulos o thumbnails)
+
+**Deliverable:** sistema de variantes + tracking.
+
+* `ab_testing.py`: genera 2 títulos o 2 thumbs.
+* Loggear variante elegida y performance.
+
+**Aprendés:** growth loop simple.
+
+---
+
+### Semana 11 — Calidad + costos + “human in the loop”
+
+**Deliverable:** checklist + modo aprobación manual opcional.
+
+* “Approve stage” antes de subir.
+* Estimación de costo por run (aprox).
+* `safety_copyright.md` con reglas.
+
+**Aprendés:** producción responsable y escalable.
+
+---
+
+### Semana 12 — Hardening + presentación (portfolio-ready)
+
+**Deliverable:** repo impecable + demo + post de presentación.
+
+* README con GIFs, arquitectura, cómo correr.
+* docs de decisiones (ADRs).
+* ejemplo de 5 runs con métricas.
+
+**Aprendés:** cómo vender el proyecto.
+
+---
+
+## 4) Rutina diaria sugerida (1 hora realista)
+
+Para avanzar constante sin quemarte:
+
+* **10 min**: revisar estado (qué anda/qué rompe), leer logs del último run.
+* **35 min**: una tarea concreta (1 módulo / 1 bug / 1 feature).
+* **10 min**: documentar (2-3 líneas en `decisions.md` o README).
+* **5 min**: checklist de mañana (1 objetivo claro).
+
+El secreto es que aunque tengas poco tiempo, **siempre termina en algo “commiteable”**.
+
+---
+
+## Cómo seguimos (primeros pasos ya)
+
+Si te parece, arrancamos por **Semana 1 Día 1**, y yo te guío en formato tutor:
+
+1. definimos el **MVP exacto** (duración, estilo visual, formato de run)
+2. armamos el README inicial (muy corto pero correcto)
+3. creamos la estructura y el primer “pipeline dummy” que genera `data/runs/<run_id>/...`
+
+Decime si vas a implementarlo en **Python** (lo más natural por tu perfil + MoviePy + APIs), y yo te paso el **README inicial** + el **contrato de artifacts** (qué JSON va en `brief.json` y `prompt_bundle.json`) para que no improvisemos desde el día 1.
