@@ -1,0 +1,9 @@
+project:
+  name: "oldies-tango"
+  default_duration_sec: 180
+
+paths:
+  runs_dir: "data/runs"
+
+logging:
+  level: "INFO"
