@@ -1,0 +1,5 @@
+channels:
+  - name: "Oldies Tango"
+    language: "es"
+    style: "tango-oldies"
+    target_duration_sec: 180

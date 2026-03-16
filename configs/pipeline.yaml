@@ -1,0 +1,46 @@
+project:
+  name: "oldies-tango"
+  default_duration_sec: 180
+
+paths:
+  runs_dir: "data/runs"
+
+logging:
+  level: "INFO"
+
+# Sistema de evaluación de outputs de agentes
+evaluation:
+  enabled: true
+  threshold: 0.90           # Estricto: 90%
+  max_attempts: 2           # Si falla 2 veces, detener pipeline
+  log_all_attempts: true    # Loguear incluso los exitosos
+  subjective_model: "claude-haiku-4-5-20251001"  # Modelo barato para eval subjetiva
+
+# Fuente de música para los videos
+music:
+  source_mode: "public_domain"  # "public_domain" | "ai_generated"
+
+# Fuente de imagen para los videos
+image:
+  source_mode: "api"  # "api" (Pollinations gratis) | "manual" (poner en src/media/image/)
+
+# Publicación en YouTube
+youtube:
+  privacy_status: "public"  # "private" | "unlisted" | "public"
+
+# Notificaciones por email (requiere EMAIL_SENDER y EMAIL_PASSWORD en .env)
+notifications:
+  enabled: true
+  to_email: "ramirozapaia@gmail.com"
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+
+# Links del canal (se agregan al footer de cada descripcion de video)
+channel:
+  cafecito_url: "cafecito.app/oldiestango"  # Dejar vacio para no incluir
+
+# Compilaciones de 1hr (Fase 9)
+compilation:
+  target_duration_min: 60   # Compilar cuando los videos limpios sumen >= 60 min
+  auto_trigger: true         # Ejecutar automáticamente luego de cada run exitoso
+  privacy_status: "public"

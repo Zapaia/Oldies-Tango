@@ -1,0 +1,41 @@
+# ── Secrets y credenciales ─────────────────────────────────────
+.env
+configs/youtube_client_secret.json
+configs/youtube_token.json
+
+# ── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ── Data local (runs, assets, resultados) ──────────────────────
+# Todo lo que genera el pipeline en ejecución queda solo en local
+data/runs/
+data/logs/
+data/assets/
+data/evaluations_history.jsonl
+data/used_songs.json
+data/raw/
+data/blacklist_identifiers.json
+
+# ── Dashboard y estado del proyecto (archivos generados/locales) ─
+docs/project_state.json
+docs/project_state.js
+docs/dashboard.html
+docs/diagrama_agentes.html
+docs/estructura_proyecto.html
+docs/evaluador.html
+docs/OldiesTangoProject.tsx
+docs/archive/
+docs/refresh_dashboard.py
+
+# ── Claude Code (configuración local del IDE) ───────────────────
+.claude/
+
+# ── Windows / Sistema local ─────────────────────────────────────
+oldies_task_backup.xml
+run_daily.bat
+.DS_Store
+Thumbs.db
